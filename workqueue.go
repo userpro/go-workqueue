@@ -291,7 +291,6 @@ func Start() {
 					t := <-Ch
 					it, ok := t.(*Item)
 					if ok {
-						//logrus.Info("Recieve Task")
 						workq.push(it)
 					}
 				}
@@ -301,7 +300,6 @@ func Start() {
 				for {
 					t.Reset(workq.Duration)
 					<-t.C
-					//logrus.Info("OrderDo Start")
 					workq.orderDo()
 				}
 			}(orderT)
@@ -310,7 +308,6 @@ func Start() {
 				for {
 					t.Reset(workq.Duration)
 					<-t.C
-					//logrus.Info("RandDo Start")
 					go workq.randDo()
 				}
 			}(randT)
