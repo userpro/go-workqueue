@@ -42,6 +42,7 @@ gow.Ch <- &gow.Item{
     },
     Retry: func(args ...interface{}) bool {
       task, _ := args[0].(...)
+      ... 重试策略函数 ...
       ... args[0] => Task, 返回true会继续尝试执行Do函数 ...
       if ... {
         return false
