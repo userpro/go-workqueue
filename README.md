@@ -18,7 +18,7 @@
 import (
   "time"
   
-	gow "go-workqueue"
+  gow "go-workqueue"
 )
 
 gow.SetDuration(time.Second) // [该函数调用非必须] workqueue的扫描间隔(默认1s)
