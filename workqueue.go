@@ -1,11 +1,10 @@
 package workqueue
 
 import (
-	"workqueue/common"
-
 	"sync"
 	"time"
 
+	"github.com/userpro/go-workqueue/common"
 	"github.com/sirupsen/logrus"
 )
 
