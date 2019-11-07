@@ -1,4 +1,4 @@
-module workqueue
+module github.com/userpro/go-workqueue
 
 go 1.13
 
