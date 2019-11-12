@@ -2,6 +2,8 @@
 
 ### 原理
 
+支持go module
+
 任务分为顺序执行和乱序并发执行两种
 
 任务通过channel入队
@@ -18,7 +20,7 @@
 import (
   "time"
   
-  gow "go-workqueue"
+  gow "github.com/userpro/go-workqueue"
 )
 
 gow.SetDuration(time.Second) // [该函数调用非必须] workqueue的扫描间隔(默认1s)
