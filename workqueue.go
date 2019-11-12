@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/userpro/go-workqueue/common"
-	"github.com/sirupsen/logrus"
 )
 
 // Ch workq任务入口 传入&workq.Item{}
@@ -28,9 +28,9 @@ type Item struct {
 // GroupItem group对应的队列的元素
 type GroupItem struct {
 	Task     interface{}
-	Do       func(...interface{}) error
-	Retry    func(...interface{}) bool // 返回true表示继续 retry
-	Callback func(...interface{})      // func(task, bool) 第二个参数表示该任务是否成功执行
+	Do       func(...interface{}) error // func(task)
+	Retry    func(...interface{}) bool  // func(task, err)  第二个参数为Do函数返回到error 返回true表示继续重试
+	Callback func(...interface{})       // func(task, bool) 第二个参数表示该任务是否成功执行
 }
 
 type group struct {
@@ -86,7 +86,7 @@ func (g *group) orderDo() {
 		// 执行失败
 		if err := e.Do(e.Task); err != nil {
 			// logrus.Error(err)
-			if e.Retry != nil && e.Retry(e.Task) {
+			if e.Retry != nil && e.Retry(e.Task, err) {
 				g.q.PushFront(e)
 				continue
 			}
@@ -134,7 +134,7 @@ func (g *group) randDo() {
 			// 执行失败
 			if err := e.Do(e.Task); err != nil {
 				// logrus.Error(err)
-				if e.Retry != nil && e.Retry(e.Task) {
+				if e.Retry != nil && e.Retry(e.Task, err) {
 					failq.PushBack(e)
 					return
 				}
