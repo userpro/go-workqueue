@@ -85,7 +85,7 @@ func (g *group) orderDo() {
 		}
 		// 执行失败
 		if err := e.Do(e.Task); err != nil {
-			// logrus.Error(err)
+			// log.Error(err)
 			if e.Retry != nil && e.Retry(e.Task, err) {
 				g.q.PushFront(e)
 				continue
@@ -133,7 +133,7 @@ func (g *group) randDo() {
 
 			// 执行失败
 			if err := e.Do(e.Task); err != nil {
-				// logrus.Error(err)
+				// log.Error(err)
 				if e.Retry != nil && e.Retry(e.Task, err) {
 					failq.PushBack(e)
 					return
@@ -218,7 +218,7 @@ func (r *workQ) push(t *Item) {
 		g = tg
 
 	default:
-		logrus.Errorf("Unknown item type: %v.", t)
+		log.Errorf("Unknown item type: %v.", t)
 		return
 	}
 
