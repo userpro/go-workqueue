@@ -222,7 +222,7 @@ func (r *workQ) push(t *Item) {
 		return
 	}
 
-	g.push(&GroupItem{Task: t.Task, Do: t.Do, Retry: t.Retry})
+	g.push(&GroupItem{Task: t.Task, Do: t.Do, Retry: t.Retry, Callback: t.Callback})
 }
 
 func (r *workQ) orderDo() {
