@@ -39,13 +39,6 @@ type group struct {
 	l     common.Mutex
 }
 
-type workQ struct {
-	Duration time.Duration
-	order    map[string]*group
-	rand     map[string]*group
-	ol, rl   common.Mutex
-}
-
 func (g *group) init() {
 	if g.q == nil {
 		g.q = &common.SyncList{}
@@ -60,19 +53,25 @@ func (g *group) setStart(s func() bool) {
 }
 
 func (g *group) push(data interface{}) {
+	g.l.Lock()
 	g.q.PushBack(data)
+	g.l.Unlock()
 }
 
 // 顺序执行
 func (g *group) orderDo() {
-	if g.q == nil {
-		return
-	}
-
 	if !g.l.TryLock() {
 		return
 	}
 	defer g.l.Unlock()
+
+	if g.start == nil || g.start() {
+		return
+	}
+
+	if g.q == nil || g.q.Size() <= 0 {
+		return
+	}
 
 	for g.q.Size() > 0 {
 		t := g.q.PopFront()
@@ -85,7 +84,6 @@ func (g *group) orderDo() {
 		}
 		// 执行失败
 		if err := e.Do(e.Task); err != nil {
-			// log.Error(err)
 			if e.Retry != nil && e.Retry(e.Task, err) {
 				g.q.PushFront(e)
 				continue
@@ -105,16 +103,19 @@ func (g *group) orderDo() {
 
 // 乱序执行
 func (g *group) randDo() {
-	// 失败需要继续重试队列
-	failq := &common.SyncList{}
-	failq.New()
+	if !g.l.TryLock() {
+		return
+	}
+	defer g.l.Unlock()
 
-	g.l.Lock()
 	// swap list
 	runq := g.q
 	g.q = &common.SyncList{}
 	g.q.New()
-	g.l.Unlock()
+
+	// 失败需要继续重试队列
+	failq := &common.SyncList{}
+	failq.New()
 
 	var wg sync.WaitGroup
 	wg.Add(runq.Size())
@@ -133,7 +134,6 @@ func (g *group) randDo() {
 
 			// 执行失败
 			if err := e.Do(e.Task); err != nil {
-				// log.Error(err)
 				if e.Retry != nil && e.Retry(e.Task, err) {
 					failq.PushBack(e)
 					return
@@ -153,6 +153,13 @@ func (g *group) randDo() {
 	wg.Wait()
 	// 将失败队列合并回主队列
 	g.q.PushBackList(failq)
+}
+
+type workQ struct {
+	Duration time.Duration
+	order    map[string]*group
+	rand     map[string]*group
+	ol, rl   common.Mutex
 }
 
 func (r *workQ) setGroupStart(g string, f func() bool) {
@@ -200,6 +207,7 @@ func (r *workQ) push(t *Item) {
 	var g *group
 	switch t.Type {
 	case Order:
+		r.ol.Lock()
 		tg, ok := r.order[t.Group]
 		if !ok {
 			r.order[t.Group] = &group{}
@@ -207,8 +215,10 @@ func (r *workQ) push(t *Item) {
 			tg.init()
 		}
 		g = tg
+		r.ol.Unlock()
 
 	case Rand:
+		r.rl.Lock()
 		tg, ok := r.rand[t.Group]
 		if !ok {
 			r.rand[t.Group] = &group{}
@@ -216,6 +226,7 @@ func (r *workQ) push(t *Item) {
 			tg.init()
 		}
 		g = tg
+		r.rl.Unlock()
 
 	default:
 		log.Errorf("Unknown item type: %v.", t)
@@ -227,28 +238,18 @@ func (r *workQ) push(t *Item) {
 
 func (r *workQ) orderDo() {
 	r.ol.Lock()
+	defer r.ol.Unlock()
 	for _, v := range r.order {
-		if v.q == nil || v.q.Size() <= 0 {
-			continue
-		}
-		if v.start == nil || v.start() {
-			go v.orderDo()
-		}
+		v.orderDo()
 	}
-	r.ol.Unlock()
 }
 
 func (r *workQ) randDo() {
 	r.rl.Lock()
+	defer r.rl.Unlock()
 	for _, v := range r.rand {
-		if v.q == nil || v.q.Size() <= 0 {
-			continue
-		}
-		if v.start == nil || v.start() {
-			go v.randDo()
-		}
+		v.randDo()
 	}
-	r.rl.Unlock()
 }
 
 /* --- 正文开始 --- */

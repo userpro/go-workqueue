@@ -72,7 +72,7 @@ func TestWorkQ(t *testing.T) {
 					}
 					return true
 				},
-				Callback: func (args ...interface{}) {
+				Callback: func(args ...interface{}) {
 					t.Logf("Callback!!!")
 				},
 			},
@@ -109,7 +109,7 @@ func TestWorkQ(t *testing.T) {
 					}
 					return true
 				},
-				Callback: func (args ...interface{}) {
+				Callback: func(args ...interface{}) {
 					t.Logf("Callback!!!")
 				},
 			},
@@ -146,7 +146,7 @@ func TestWorkQ(t *testing.T) {
 					}
 					return true
 				},
-				Callback: func (args ...interface{}) {
+				Callback: func(args ...interface{}) {
 					t.Logf("Callback!!!")
 				},
 			},
@@ -177,7 +177,7 @@ func TestWorkQ(t *testing.T) {
 					}
 					return true
 				},
-				Callback: func (args ...interface{}) {
+				Callback: func(args ...interface{}) {
 					t.Logf("Callback!!!")
 				},
 			},
