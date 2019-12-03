@@ -118,13 +118,13 @@ func (g *group) randDo() {
 	failq.New()
 
 	var wg sync.WaitGroup
-	wg.Add(runq.Size())
 
 	for runq.Size() > 0 {
 		t := runq.PopFront()
 		if t == nil {
 			return
 		}
+		wg.Add(1)
 		e, _ := t.(*GroupItem)
 		go func(failq *common.SyncList, e *GroupItem) {
 			defer wg.Done()
