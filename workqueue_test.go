@@ -15,7 +15,7 @@ type testT struct {
 func TestWorkQ(t *testing.T) {
 	f := func() bool {
 		flag := rand.Intn(1)
-		// t.Log("flag: ", flag)
+		t.Log("flag: ", flag)
 		if flag == 1 {
 			return true
 		}

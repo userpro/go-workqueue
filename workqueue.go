@@ -40,10 +40,12 @@ type group struct {
 }
 
 func (g *group) init() {
+	g.l.Lock()
 	if g.q == nil {
 		g.q = &common.SyncList{}
 		g.q.New()
 	}
+	g.l.Unlock()
 }
 
 func (g *group) setStart(s func() bool) {
@@ -65,7 +67,7 @@ func (g *group) orderDo() {
 	}
 	defer g.l.Unlock()
 
-	if g.start == nil || g.start() {
+	if g.start != nil && !g.start() {
 		return
 	}
 
@@ -107,6 +109,10 @@ func (g *group) randDo() {
 		return
 	}
 	defer g.l.Unlock()
+
+	if g.start != nil && !g.start() {
+		return
+	}
 
 	// swap list
 	runq := g.q
