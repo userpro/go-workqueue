@@ -291,6 +291,8 @@ func Start() {
 		func() {
 			orderT := time.NewTimer(workq.Duration)
 			randT := time.NewTimer(workq.Duration)
+			defer orderT.Stop()
+			defer randT.Stop()
 
 			go func() {
 				for {
